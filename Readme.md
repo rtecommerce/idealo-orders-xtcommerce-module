@@ -11,10 +11,10 @@ September 20 2016
 * An active idealo Direktkauf account and an API-Auth-Token.
 
 ## Installation
-1. Copy the the folder 'fc_idealodk' into your shops plugin-dir.
+1. Copy the the folder `fc_idealodk` into your shops plugin-dir.
 2. Log into your shops admin an activate the new plugin.
 3. Configure module options as your idealo auth token etc.
-4. Set up a cronjob to 'plugins\fc_idealodk\cron\fcidealodk_batch.php' (i.e. every 15 minutes)
+4. Set up a cronjob to `plugins\fc_idealodk\cron\fcidealodk_batch.php` (i.e. every 15 minutes)
 
 ## License
 Copyright 2016 idealo internet GmbH
