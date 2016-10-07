@@ -25,6 +25,7 @@
  */
 
 include dirname(__FILE__) . '/../../../xtCore/main.php';
+include dirname(__FILE__) . '/../classes/class.idealodk_logger.php';
 include dirname(__FILE__) . '/../classes/class.idealodk_order_import.php';
 include dirname(__FILE__) . '/../classes/class.idealodk_orderstatus_export.php';
 
