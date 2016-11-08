@@ -61,7 +61,7 @@
             <key>FC_IDEALODK_PAYMENTCODE_CC</key>
             <value>xt_creditcard</value>
             <de>
-                <title>XT Zahlungsart-Code f??r Kreditkarte</title>
+                <title>XT Zahlungsart-Code f&uuml;r Kreditkarte</title>
             </de>
             <en>
                 <title>XT Payment-Code for creditcard</title>
@@ -71,7 +71,7 @@
             <key>FC_IDEALODK_PAYMENTCODE_PAYPAL</key>
             <value>xt_paypal</value>
             <de>
-                <title>XT Zahlungsart-Code f??r PAYPAL</title>
+                <title>XT Zahlungsart-Code f&uuml;r PAYPAL</title>
             </de>
             <en>
                 <title>XT Payment-Code for PAYPAL</title>
@@ -81,17 +81,17 @@
             <key>FC_IDEALODK_PAYMENTCODE_SOFORT</key>
             <value>xt_sofortueberweisung</value>
             <de>
-                <title>XT Zahlungsart-Code f??r Sofort??berweisung</title>
+                <title>XT Zahlungsart-Code f??r Sofort&uuml;berweisung</title>
             </de>
             <en>
-                <title>XT Payment-Code for Sofort??berweisung</title>
+                <title>XT Payment-Code for Sofort&uuml;berweisung</title>
             </en>
         </config>
         <config>
             <key>FC_IDEALODK_SHIPPINGCODE</key>
             <value>Standard</value>
             <de>
-                <title>XT Versand-Code f??r importierte Bestellungen</title>
+                <title>XT Versand-Code f&uuml;r importierte Bestellungen</title>
             </de>
             <en>
                 <title>XT Shipping-Code for imported orders</title>
@@ -113,7 +113,7 @@
 			<type>dropdown</type>
 			<url>fc_idealodk_storno_reason</url>
 			<de>
-				<title>Als Stornierungsgrund ??bermittelter Wert</title>
+				<title>Als Stornierungsgrund &uuml;bermittelter Wert</title>
 			</de>
 			<en>
 				<title>Reason for order cancelation</title>
