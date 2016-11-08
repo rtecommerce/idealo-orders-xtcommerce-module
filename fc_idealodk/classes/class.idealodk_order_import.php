@@ -48,12 +48,15 @@ class idealodk_order_import
     protected function saveOrder($aOrder)
     {
         $iCustomerId = $this->addCustomer($aOrder);
-        $iAdressbookId = $this->addCustomerAdress($aOrder, $iCustomerId);
-        $iOrderId = $this->addOrder($aOrder, $iCustomerId, $iAdressbookId);
+        $iAdressbookShippingId = $this->addCustomerAdress($aOrder, $iCustomerId, 'shipping');
+        $iAdressbookBillingId = $this->addCustomerAdress($aOrder, $iCustomerId, 'payment');
+        $iOrderId = $this->addOrder($aOrder, $iCustomerId, $iAdressbookShippingId, $iAdressbookBillingId);
+        idealodk_logger::log('IDEALO ORDER IMPORT: NOTICE: XTC Order ID ' . $iOrderId);
         $this->addOrderTotal($aOrder, $iOrderId);
         $this->addOrderStatusHistory($iOrderId);
         if ( $this->addOrderProducts($aOrder, $iOrderId) == false){
             $this->resetImport($iOrderId);
+            idealodk_logger::log('IDEALO ORDER IMPORT: ERROR: Order Nr.' . $aOrder['order_number'] . ' could not be imported!');
         } else {
             $this->sendOrderNr($aOrder['order_number'], $iOrderId);
             $this->addOrderStats($aOrder, $iOrderId);
@@ -61,21 +64,31 @@ class idealodk_order_import
         }
     }
     
-    protected function addCustomerAdress($aOrder, $iCustomerId)
+    protected function addCustomerAdress($aOrder, $iCustomerId, $sAdressClass = 'default')
     {
         $oCustomer = new customer();
         
+        $node = 'shipping_address';
+        if ($sAdressClass == 'payment' && is_array($aOrder['billing_address'])){
+            $node = 'billing_address';
+        }
+        
+        
         $aData = [];
         $aData['customers_id'] = $iCustomerId;
-        $aData['customers_firstname'] = $aOrder['shipping_address']['given_name'];
-        $aData['customers_lastname'] = $aOrder['shipping_address']['family_name'];
-        $aData['customers_street_address'] = $aOrder['shipping_address']['address1'];
-        $aData['customers_postcode'] = $aOrder['shipping_address']['zip'];
-        $aData['customers_city'] = $aOrder['shipping_address']['city'];
-        $aData['customers_country_code'] = $aOrder['shipping_address']['country'];
+        $aData['customers_firstname'] = $aOrder[$node]['given_name'];
+        $aData['customers_lastname'] = $aOrder[$node]['family_name'];
+        $aData['customers_street_address'] = $aOrder[$node]['address1'];
+        $aData['customers_suburb'] = $aOrder[$node]['address2'];
+        $aData['customers_postcode'] = $aOrder[$node]['zip'];
+        $aData['customers_city'] = $aOrder[$node]['city'];
+        $aData['customers_country_code'] = $aOrder[$node]['country'];
         $aData['customers_phone'] = $aOrder['customer']['phone'];
-        $aData['address_class'] = 'default';
+        $aData['address_class'] = $sAdressClass;
         $aData['date_added'] = date("Y-m-d H:i:s");
+        if($aOrder[$node]['salutation'] != 'NONE') {
+            $aData['customers_gender'] = ($aOrder[$node]['salutation'] == "MR") ? "m" : "f";
+        }
         
         $oCustomer->_writeAddressData($aData);
         
@@ -110,7 +123,7 @@ class idealodk_order_import
         $db->AutoExecute('xt_fcidealo_status',$aData,'INSERT');
     }
     
-    protected function addOrder($aOrder, $iCustomerId, $iAdressbookId)
+    protected function addOrder($aOrder, $iCustomerId, $iAdressbookShippingId, $iAdressbookBillingId)
     {
         $oOrder = new order();
         
@@ -133,23 +146,33 @@ class idealodk_order_import
         $aData['delivery_firstname'] = $aOrder['shipping_address']['given_name'];
         $aData['delivery_lastname'] = $aOrder['shipping_address']['family_name'];
         $aData['delivery_street_address'] = $aOrder['shipping_address']['address1'];
+        $aData['delivery_suburb'] = $aOrder['shipping_address']['address2'];
         $aData['delivery_city'] = $aOrder['shipping_address']['city'];
         $aData['delivery_postcode'] = $aOrder['shipping_address']['zip'];
         $aData['delivery_zone'] = 31;
         $aData['delivery_country'] = 'Deutschland';
         $aData['delivery_country_code'] = $aOrder['shipping_address']['country'];
-        $aData['delivery_address_book_id'] = $iAdressbookId;
+        $aData['delivery_address_book_id'] = $iAdressbookShippingId;
+        if($aOrder['shipping_address']['salutation'] != 'NONE') {
+            $aData['delivery_gender'] = ($aOrder['shipping_address']['salutation'] == "MR") ? "m" : "f";
+        }
         
         $aData['billing_phone'] = $aOrder['customer']['phone'];
-        $aData['billing_firstname'] = $aOrder['billing_address']['given_name'];
-        $aData['billing_lastname'] = $aOrder['shipping_address']['family_name'];
-        $aData['billing_street_address'] = $aOrder['shipping_address']['address1'];
-        $aData['billing_city'] = $aOrder['shipping_address']['city'];
-        $aData['billing_postcode'] = $aOrder['shipping_address']['zip'];
+        $aData['billing_firstname'] = ($aOrder['billing_address']['given_name'] != "") ? $aOrder['billing_address']['given_name'] : $aOrder['shipping_address']['given_name'];
+        $aData['billing_lastname'] = ($aOrder['billing_address']['family_name'] != "") ? $aOrder['billing_address']['family_name'] : $aOrder['shipping_address']['family_name'];
+        $aData['billing_street_address'] = ($aOrder['billing_address']['address1'] != "") ? $aOrder['billing_address']['address1'] : $aOrder['shipping_address']['address1'];
+        $aData['billing_suburb'] = ($aOrder['billing_address']['address2'] != "") ? $aOrder['billing_address']['address2'] : $aOrder['shipping_address']['address2'];
+        $aData['billing_city'] = ($aOrder['billing_address']['city'] != "") ? $aOrder['billing_address']['city'] : $aOrder['shipping_address']['city'];
+        $aData['billing_postcode'] = ($aOrder['billing_address']['zip'] != "") ? $aOrder['billing_address']['zip'] : $aOrder['shipping_address']['zip'];
         $aData['billing_zone'] = 31;
         $aData['billing_country'] = 'Deutschland';
-        $aData['billing_country_code'] = $aOrder['shipping_address']['country'];
-        $aData['billing_address_book_id'] = $iAdressbookId;
+        $aData['billing_country_code'] = ($aOrder['billing_address']['country'] != "") ? $aOrder['billing_address']['country'] : $aOrder['shipping_address']['country'];
+        $aData['billing_address_book_id'] = ($iAdressbookBillingId != "") ? $iAdressbookBillingId : $iAdressbookShippingId;
+        if(isset($aOrder['billing_address']['salutation']) && $aOrder['billing_address']['salutation'] != 'NONE') {
+            $aData['billing_gender'] = ($aOrder['billing_address']['salutation'] == "MR") ? "m" : "f";
+        } else if($aOrder['shipping_address']['salutation'] != 'NONE') {
+            $aData['billing_gender'] = ($aOrder['shipping_address']['salutation'] == "MR") ? "m" : "f";
+        }
         
         if ($aOrder['payment']['payment_method'] == 'PAYPAL') {
             $sPayCode = FC_IDEALODK_PAYMENTCODE_PAYPAL;
@@ -171,7 +194,7 @@ class idealodk_order_import
     {
         $oOrder = new order();
         foreach ($aOrder['line_items'] as $aProduct) {
-            $iNetPrice = ($aProduct['price'] / 119) * 100;
+            $iNetPrice = ($aProduct['item_price'] / 119) * 100;
             
             $sModel = $aProduct['sku'];
             $oProduct = $this->getProduct($sModel);
@@ -187,9 +210,13 @@ class idealodk_order_import
             $aData['products_tax_class'] = '1';
             $aData['products_quantity'] = $aProduct['quantity'];
             $aData['allow_tax'] = '1';
+            if ($aProduct['delivery_time']){
+                $aData['products_shipping_time'] = $aProduct['delivery_time'];
+            }
             
             $oOrder->_saveProductData($aData, 'insert', true);
         }
+        return true;
     }
     
     protected function addOrderStatusHistory($iOrderId)
@@ -250,6 +277,7 @@ class idealodk_order_import
         $sId = $db->GetOne($sQ);
         if ($sId && $sId != ""){
             $oProduct = new product($sId);
+            idealodk_logger::log('IDEALO ORDER IMPORT: NOTICE: Product SKU ' . $sSku . '/ ID '. $sId .' loaded');
         } else {
             idealodk_logger::log('IDEALO ORDER IMPORT: ERROR: Product SKU ' . $sSku . ' not found');
         }

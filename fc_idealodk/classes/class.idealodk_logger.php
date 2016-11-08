@@ -44,7 +44,7 @@ class idealodk_logger
         }
         
         $sTime = "[" . date("d-M-Y H:i:s ") . date_default_timezone_get() . "] ";
-        $handle = fopen(_SRV_WEBROOT._SRV_WEB_LOG . 'fc_idealodk.log', "a+");
+        $handle = fopen(_SRV_WEBROOT . _SRV_WEB_LOG . 'fc_idealodk.log', "a+");
         fwrite($handle, $sTime . $sMessage . "\n");
         fclose($handle);
     }
