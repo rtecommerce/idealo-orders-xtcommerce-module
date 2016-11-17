@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf8"?>
 <xtcommerceplugin>
     <title>idealo Direktkauf</title>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <code>fc_idealodk</code>
     <url>http://www.idealo.de</url>
     <description>Module to import orders from idealo direktkauf into yout XTC-Shop.</description>
     <developer>FATCHIP GmbH</developer>
-    <documentation_link><![CDATA[https://xtcommerce.atlassian.net/wiki/pages/viewpage.action?pageId=31391777]]></documentation_link>
+    <documentation_link><![CDATA[https://github.com/idealo/idealo-orders-xtcommerce-module]]></documentation_link>
     <icon>fc_idealodk_logo.png</icon>
     <type>marketing</type>
     <db_install>
@@ -30,6 +30,14 @@
 			require_once _SRV_WEBROOT.'plugins/fc_idealodk/hooks/admin_dropdown_php_dropdown.php';
 			]]></phpcode>
 			<order>1</order>
+			<active>1</active>
+		</code>
+		<code>
+			<hook>cron_action:idealodk_sync</hook>
+			<phpcode><![CDATA[
+			require_once _SRV_WEBROOT.'plugins/fc_idealodk/cron/fcidealodk_batch.php';
+			]]></phpcode>
+			<order>2</order>
 			<active>1</active>
 		</code>
 	</plugin_code>
@@ -61,7 +69,7 @@
             <key>FC_IDEALODK_PAYMENTCODE_CC</key>
             <value>xt_creditcard</value>
             <de>
-                <title>XT Zahlungsart-Code f&uuml;r Kreditkarte</title>
+                <title><![CDATA[XT Zahlungsart-Code f&uuml;r Kreditkarte]]></title>
             </de>
             <en>
                 <title>XT Payment-Code for creditcard</title>
@@ -71,7 +79,7 @@
             <key>FC_IDEALODK_PAYMENTCODE_PAYPAL</key>
             <value>xt_paypal</value>
             <de>
-                <title>XT Zahlungsart-Code f&uuml;r PAYPAL</title>
+                <title><![CDATA[XT Zahlungsart-Code f&uuml;r PAYPAL]]></title>
             </de>
             <en>
                 <title>XT Payment-Code for PAYPAL</title>
@@ -81,20 +89,30 @@
             <key>FC_IDEALODK_PAYMENTCODE_SOFORT</key>
             <value>xt_sofortueberweisung</value>
             <de>
-                <title>XT Zahlungsart-Code f??r Sofort&uuml;berweisung</title>
+                <title><![CDATA[XT Zahlungsart-Code f??r Sofort&uuml;berweisung]]></title>
             </de>
             <en>
-                <title>XT Payment-Code for Sofort&uuml;berweisung</title>
+                <title><![CDATA[XT Payment-Code for Sofort&uuml;berweisung]]></title>
             </en>
         </config>
         <config>
             <key>FC_IDEALODK_SHIPPINGCODE</key>
             <value>Standard</value>
             <de>
-                <title>XT Versand-Code f&uuml;r importierte Bestellungen</title>
+                <title><![CDATA[XT Versand-Code f&uuml;r importierte Post-Versand-Bestellungen]]></title>
             </de>
             <en>
-                <title>XT Shipping-Code for imported orders</title>
+                <title><![CDATA[XT Shipping-Code for imported postal-orders]]></title>
+            </en>
+        </config>
+        <config>
+            <key>FC_IDEALODK_FORWARDINGCODE</key>
+            <value>Standard</value>
+            <de>
+                <title><![CDATA[XT Versand-Code f&uuml;r importierte Speditions-Bestellungen]]></title>
+            </de>
+            <en>
+                <title>XT Shipping-Code for imported forwarding-orders</title>
             </en>
         </config>
         <config>
@@ -113,7 +131,7 @@
 			<type>dropdown</type>
 			<url>fc_idealodk_storno_reason</url>
 			<de>
-				<title>Als Stornierungsgrund &uuml;bermittelter Wert</title>
+				<title><![CDATA[Als Stornierungsgrund &uuml;bermittelter Wert]]></title>
 			</de>
 			<en>
 				<title>Reason for order cancelation</title>

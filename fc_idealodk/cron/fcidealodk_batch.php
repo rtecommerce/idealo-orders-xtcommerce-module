@@ -24,10 +24,12 @@
  * @license  http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
  */
 
-include dirname(__FILE__) . '/../../../xtCore/main.php';
-include dirname(__FILE__) . '/../classes/class.idealodk_logger.php';
-include dirname(__FILE__) . '/../classes/class.idealodk_order_import.php';
-include dirname(__FILE__) . '/../classes/class.idealodk_orderstatus_export.php';
+if (!class_exists('countries')){
+    include dirname(__FILE__) . '/../../../xtCore/main.php';
+}
+require_once dirname(__FILE__) . '/../classes/class.idealodk_logger.php';
+require_once dirname(__FILE__) . '/../classes/class.idealodk_order_import.php';
+require_once dirname(__FILE__) . '/../classes/class.idealodk_orderstatus_export.php';
 
 $oImport = new idealodk_order_import();
 $oImport->run();

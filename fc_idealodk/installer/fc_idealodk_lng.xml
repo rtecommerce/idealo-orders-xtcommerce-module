@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xtcommerceplugin>
+    <language_content>
+        <phrase>
+            <key>TEXT_FCIDEALODK_FULFILMENT_OPTIONS</key>
+            <class>admin</class>
+            <en>
+                <value><![CDATA[fulfilment options]]></value>
+            </en>
+            <de>
+                <value><![CDATA[Lieferoptionen]]></value>
+            </de>
+        </phrase>
+        <phrase>
+            <key>TEXT_FCIDEALODK_ORDERNR</key>
+            <class>admin</class>
+            <en>
+                <value><![CDATA[idealo order nr.]]></value>
+            </en>
+            <de>
+                <value><![CDATA[idealo Bestell-Nr.]]></value>
+            </de>
+        </phrase>
+        <phrase>
+            <key>TEXT_FCIDEALODK_TRANSACTIONID</key>
+            <class>admin</class>
+            <en>
+                <value><![CDATA[payment transaction id]]></value>
+            </en>
+            <de>
+                <value><![CDATA[Zahlung Transaktions-ID]]></value>
+            </de>
+        </phrase>
+        <phrase>
+            <key>TEXT_FCIDEALODK_DELTIME</key>
+            <class>admin</class>
+            <en>
+                <value><![CDATA[delivery time]]></value>
+            </en>
+            <de>
+                <value><![CDATA[Lieferzeitzusage]]></value>
+            </de>
+        </phrase>
+    </language_content>
+</xtcommerceplugin>

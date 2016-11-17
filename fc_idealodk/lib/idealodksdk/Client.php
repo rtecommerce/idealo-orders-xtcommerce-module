@@ -154,6 +154,10 @@ class Client
     
     public function sendOrderNr($sIdealoOrderNr, $sShopOrderNr)
     {
+        if($this->sDebugDirectUrl !== false) {
+            return true;
+        }
+        
         $sUrl = $this->getRequestUrl(self::URL_TYPE_SEND_ORDER_NR, $sIdealoOrderNr);
         $aParams = array(
             'merchant_order_no' => $sShopOrderNr,

@@ -276,7 +276,7 @@
         },
         "line_items": [
             {
-                "delivery_time": null,
+                "delivery_time": "1-2 Tage",
                 "item_price": "146.38",
                 "price": "146.38",
                 "quantity": 1,
@@ -332,7 +332,7 @@
         },
         "line_items": [
             {
-                "delivery_time": null,
+                "delivery_time": "2-3 Tage",
                 "item_price": "24.90",
                 "price": "24.90",
                 "quantity": 1,
@@ -388,7 +388,7 @@
         },
         "line_items": [
             {
-                "delivery_time": null,
+                "delivery_time": "3-4 Tage",
                 "item_price": "294.00",
                 "price": "294.00",
                 "quantity": 1,

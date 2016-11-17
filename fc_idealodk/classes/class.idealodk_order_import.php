@@ -33,16 +33,20 @@ class idealodk_order_import
     
     public function run()
     {
+        idealodk_logger::log('IDEALO ORDER IMPORT: NOTICE: Starting.');
         $oIdealo = new idealo\Direktkauf\REST\Client();
         $oIdealo->setToken(FC_IDEALODK_APIKEY);
         $blLiveMode = (FC_IDEALODK_MODE == 'live') ? true : false;
         $oIdealo->setIsLiveMode($blLiveMode);
         
         $aOrders = $oIdealo->getOrders();
-        
+        if (empty($aOrders)){
+            idealodk_logger::log('IDEALO ORDER IMPORT: NOTICE: No Orders to import.');
+        }
         foreach ($aOrders as $aOrder) {
             $this->saveOrder($aOrder);
         }
+        idealodk_logger::log('IDEALO ORDER IMPORT: NOTICE: Finished.');
     }
     
     protected function saveOrder($aOrder)
@@ -72,7 +76,6 @@ class idealodk_order_import
         if ($sAdressClass == 'payment' && is_array($aOrder['billing_address'])){
             $node = 'billing_address';
         }
-        
         
         $aData = [];
         $aData['customers_id'] = $iCustomerId;
@@ -184,7 +187,30 @@ class idealodk_order_import
         $aData['payment_code'] = $sPayCode;
         $aData['authorization_id'] = $aOrder['payment']['transaction_id'];
         
-        $aData['shipping_code'] = FC_IDEALODK_SHIPPINGCODE;
+        if ($aOrder['fulfillment']['type'] == 'POSTAL') {
+            $aData['shipping_code'] = FC_IDEALODK_SHIPPINGCODE;
+        } else if ($aOrder['fulfillment']['type'] == 'FORWARDING') {
+            $aData['shipping_code'] = FC_IDEALODK_FORWARDINGCODE;
+        }
+        
+        // Info field used for various values
+        $aOrdersData = array();
+        $aOrdersData['FCIDEALODK_ORDERNR'] = $aOrder['order_number'];
+        $blFirst = true;
+        $sFulOptions = "";
+        foreach ($aOrder['fulfillment']['fulfillment_options'] as $aFulOption) {
+            if ($blFirst == true){
+                $blFirst = false;
+            } else {
+                $sFulOptions .= ", ";
+            }
+            $sFulOptions .= $aFulOption['name'] . "(" . $aFulOption['price'] . " " . $aOrder['currency'] . ")";
+        }
+        $aOrdersData['FCIDEALODK_FULFILMENT_OPTIONS'] = $sFulOptions;
+        $aOrdersData['FCIDEALODK_TRANSACTIONID'] = $aOrder['payment']['transaction_id'];
+        $aOrdersData['FCIDEALODK_DELTIME'] = utf8_decode( $aOrder['line_items'][0]['delivery_time'] );
+        $aData['orders_data'] = serialize($aOrdersData);
+        
         $oOrder->_saveCustomerData($aData);
         
         return $oOrder->data_orders_id;
@@ -205,6 +231,7 @@ class idealodk_order_import
             $aData['products_id'] = $oProduct->data['products_id'];
             $aData['products_model'] = $oProduct->data['products_model'];
             $aData['products_name'] = utf8_decode( $aProduct['title'] );
+            $aData['products_shipping_time'] = utf8_decode( $aProduct['delivery_time'] );
             $aData['products_price'] = $iNetPrice;
             $aData['products_tax'] = '19.0000';
             $aData['products_tax_class'] = '1';
@@ -327,8 +354,17 @@ class idealodk_order_import
         $sResponse = $oIdealo->sendOrderNr($sIdealoOrderNr, $sShopOrderNr);
         
         if($sResponse === false) {
-            die(getErrorOutput($oIdealo));
+            die($this->getErrorOutput($oIdealo));
         }
+    }
+    
+    protected function getErrorOutput($oClient)
+    {
+        $sOutput  = '';
+        $sOutput .= 'HTTP-Code: '.$oClient->getHttpStatus(). PHP_EOL;
+        $sOutput .= 'CURL-Error: '.$oClient->getCurlError(). PHP_EOL;
+        $sOutput .= 'CURL-Error-Nr: '.$oClient->getCurlErrno(). PHP_EOL;
+        return $sOutput;
     }
 }
 
