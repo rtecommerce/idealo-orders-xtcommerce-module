@@ -26,11 +26,17 @@
 
 class idealodk_order_import
 {
+    /**
+     * idealodk_order_import constructor.
+     */
     public function __construct()
     {
         require_once dirname(__FILE__) . '/../lib/idealodksdk/Client.php';
     }
-    
+
+    /**
+     * Call this method to start the order import.
+     */
     public function run()
     {
         idealodk_logger::log('IDEALO ORDER IMPORT: NOTICE: Starting.');
@@ -48,26 +54,57 @@ class idealodk_order_import
         }
         idealodk_logger::log('IDEALO ORDER IMPORT: NOTICE: Finished.');
     }
-    
+
+    /**
+     * @param array $aOrder Idealo order data array
+     */
     protected function saveOrder($aOrder)
     {
-        $iCustomerId = $this->addCustomer($aOrder);
-        $iAdressbookShippingId = $this->addCustomerAdress($aOrder, $iCustomerId, 'shipping');
-        $iAdressbookBillingId = $this->addCustomerAdress($aOrder, $iCustomerId, 'payment');
-        $iOrderId = $this->addOrder($aOrder, $iCustomerId, $iAdressbookShippingId, $iAdressbookBillingId);
-        idealodk_logger::log('IDEALO ORDER IMPORT: NOTICE: XTC Order ID ' . $iOrderId);
-        $this->addOrderTotal($aOrder, $iOrderId);
-        $this->addOrderStatusHistory($iOrderId);
-        if ( $this->addOrderProducts($aOrder, $iOrderId) == false){
-            $this->resetImport($iOrderId);
-            idealodk_logger::log('IDEALO ORDER IMPORT: ERROR: Order Nr.' . $aOrder['order_number'] . ' could not be imported!');
-        } else {
-            $this->sendOrderNr($aOrder['order_number'], $iOrderId);
-            $this->addOrderStats($aOrder, $iOrderId);
-            $this->addFcIdealoStatus($iOrderId);
+        if (!$this->orderExists($aOrder['order_number'])) {
+            $iCustomerId = $this->addCustomer($aOrder);
+            $iAdressbookShippingId = $this->addCustomerAdress($aOrder, $iCustomerId, 'shipping');
+            $iAdressbookBillingId = $this->addCustomerAdress($aOrder, $iCustomerId, 'payment');
+            $iOrderId = $this->addOrder($aOrder, $iCustomerId, $iAdressbookShippingId, $iAdressbookBillingId);
+            idealodk_logger::log('IDEALO ORDER IMPORT: NOTICE: XTC Order ID ' . $iOrderId);
+            $this->addOrderTotal($aOrder, $iOrderId);
+            $this->addOrderStatusHistory($iOrderId);
+            if ( $this->addOrderProducts($aOrder, $iOrderId) == false){
+                $this->resetImport($iOrderId);
+                idealodk_logger::log('IDEALO ORDER IMPORT: ERROR: Order Nr.' . $aOrder['order_number'] . ' could not be imported!');
+            } else {
+                $this->sendOrderNr($aOrder['order_number'], $iOrderId);
+                $this->addOrderStats($aOrder, $iOrderId);
+                $this->addFcIdealoStatus($iOrderId);
+            }
         }
     }
-    
+
+    /**
+     * @param $sIdealoOrderNr
+     * @return bool
+     */
+    protected function orderExists($sIdealoOrderNr)
+    {
+        $blExists = false;
+        global $db;
+        $sQ = "SELECT 
+                xt_orders.orders_id AS orders_id
+               FROM xt_orders
+               WHERE xt_orders.orders_source_external_id = '" . $sIdealoOrderNr . "'";
+        $aOrders = $db->GetArray($sQ);
+        if(is_array($aOrders) && count($aOrders) > 0 ) {
+            $blExists = true;
+        }
+
+        return $blExists;
+    }
+
+    /**
+     * @param $aOrder
+     * @param $iCustomerId
+     * @param string $sAdressClass
+     * @return mixed
+     */
     protected function addCustomerAdress($aOrder, $iCustomerId, $sAdressClass = 'default')
     {
         $oCustomer = new customer();
@@ -97,7 +134,11 @@ class idealodk_order_import
         
         return $oCustomer->address_book_id;
     }
-    
+
+    /**
+     * @param $aOrder
+     * @return mixed
+     */
     protected function addCustomer($aOrder)
     {
         $oCustomer = new customer();
@@ -114,7 +155,10 @@ class idealodk_order_import
         
         return $oCustomer->data_customer_id;
     }
-    
+
+    /**
+     * @param $iOrderId
+     */
     protected function addFcIdealoStatus($iOrderId)
     {
         global $db;
@@ -125,7 +169,14 @@ class idealodk_order_import
         
         $db->AutoExecute('xt_fcidealo_status',$aData,'INSERT');
     }
-    
+
+    /**
+     * @param $aOrder
+     * @param $iCustomerId
+     * @param $iAdressbookShippingId
+     * @param $iAdressbookBillingId
+     * @return mixed
+     */
     protected function addOrder($aOrder, $iCustomerId, $iAdressbookShippingId, $iAdressbookBillingId)
     {
         $oOrder = new order();
@@ -207,15 +258,20 @@ class idealodk_order_import
             $sFulOptions .= $aFulOption['name'] . "(" . $aFulOption['price'] . " " . $aOrder['currency'] . ")";
         }
         $aOrdersData['FCIDEALODK_FULFILMENT_OPTIONS'] = $sFulOptions;
-        $aOrdersData['FCIDEALODK_TRANSACTIONID'] = $aOrder['payment']['transaction_id'];
         $aOrdersData['FCIDEALODK_DELTIME'] = utf8_decode( $aOrder['line_items'][0]['delivery_time'] );
+        $aOrdersData['FCIDEALODK_TRANSACTIONID'] = $aOrder['payment']['transaction_id'];
         $aData['orders_data'] = serialize($aOrdersData);
         
         $oOrder->_saveCustomerData($aData);
         
         return $oOrder->data_orders_id;
     }
-    
+
+    /**
+     * @param $aOrder
+     * @param $iOrderId
+     * @return bool
+     */
     protected function addOrderProducts($aOrder, $iOrderId)
     {
         $oOrder = new order();
@@ -245,7 +301,10 @@ class idealodk_order_import
         }
         return true;
     }
-    
+
+    /**
+     * @param $iOrderId
+     */
     protected function addOrderStatusHistory($iOrderId)
     {
         global $db;
@@ -262,7 +321,11 @@ class idealodk_order_import
         
         $db->AutoExecute(TABLE_ORDERS_STATUS_HISTORY,$aData,'INSERT');
     }
-    
+
+    /**
+     * @param $aOrder
+     * @param $iOrderId
+     */
     protected function addOrderStats($aOrder, $iOrderId)
     {
         global $db;
@@ -274,7 +337,11 @@ class idealodk_order_import
         
         $db->AutoExecute('xt_orders_stats',$aData,'INSERT');
     }
-    
+
+    /**
+     * @param $aOrder
+     * @param $iOrderId
+     */
     protected function addOrderTotal($aOrder, $iOrderId)
     {
         $oOrder = new order();
@@ -295,7 +362,11 @@ class idealodk_order_import
         
         $oOrder->_saveTotalData($aData);
     }
-    
+
+    /**
+     * @param $sSku
+     * @return bool|product
+     */
     protected function getProduct($sSku)
     {
         global $db;
@@ -310,7 +381,10 @@ class idealodk_order_import
         }
         return $oProduct;
     }
-    
+
+    /**
+     * @return string
+     */
     protected function getSourceId()
     {
         global $db;
@@ -324,7 +398,10 @@ class idealodk_order_import
         
         return $sId;
     }
-    
+
+    /**
+     * @param $iOrderId
+     */
     protected function resetImport($iOrderId)
     {
         global $db;
@@ -338,7 +415,11 @@ class idealodk_order_import
         $sQ3 = "DELETE FROM " . TABLE_ORDERS_STATUS_HISTORY . " WHERE orders_id = '" . $iOrderId . "'";
         $db->Execute($sQ3);
     }
-    
+
+    /**
+     * @param $sIdealoOrderNr
+     * @param $sShopOrderNr
+     */
     protected function sendOrderNr($sIdealoOrderNr, $sShopOrderNr)
     {
         if(!$sIdealoOrderNr) {
@@ -357,7 +438,11 @@ class idealodk_order_import
             die($this->getErrorOutput($oIdealo));
         }
     }
-    
+
+    /**
+     * @param $oClient
+     * @return string
+     */
     protected function getErrorOutput($oClient)
     {
         $sOutput  = '';

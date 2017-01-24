@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf8"?>
 <xtcommerceplugin>
     <title>idealo Direktkauf</title>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
     <code>fc_idealodk</code>
     <url>http://www.idealo.de</url>
     <description>Module to import orders from idealo direktkauf into yout XTC-Shop.</description>
@@ -33,13 +33,21 @@
 			<active>1</active>
 		</code>
 		<code>
-			<hook>cron_action:idealodk_sync</hook>
+			<hook>cron_action:idealodk_order_sync</hook>
 			<phpcode><![CDATA[
-			require_once _SRV_WEBROOT.'plugins/fc_idealodk/cron/fcidealodk_batch.php';
+			require_once _SRV_WEBROOT.'plugins/fc_idealodk/cron/fcidealodk_orders_batch.php';
 			]]></phpcode>
 			<order>2</order>
 			<active>1</active>
 		</code>
+        <code>
+            <hook>cron_action:idealodk_status_sync</hook>
+            <phpcode><![CDATA[
+			require_once _SRV_WEBROOT.'plugins/fc_idealodk/cron/fcidealodk_status_batch.php';
+			]]></phpcode>
+            <order>3</order>
+            <active>1</active>
+        </code>
 	</plugin_code>
 
     <configuration>
