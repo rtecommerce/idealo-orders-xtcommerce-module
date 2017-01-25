@@ -44,7 +44,13 @@ class idealodk_order_import
         $oIdealo->setToken(FC_IDEALODK_APIKEY);
         $blLiveMode = (FC_IDEALODK_MODE == 'live') ? true : false;
         $oIdealo->setIsLiveMode($blLiveMode);
-        
+
+        $oIdealo->setERPShopSystem('XTC');
+        $oIdealo->setERPShopSystemVersion(_SYSTEM_VERSION);
+        $oIdealo->setIntegrationPartner('FATCHIP');
+        $oIdealo->setInterfaceVersion($this->getPluginVersion());
+        idealodk_logger::log('IDEALO ORDER IMPORT: NOTICE: XTC ' . _SYSTEM_VERSION . ' FATCHIP v' . $this->getPluginVersion());
+
         $aOrders = $oIdealo->getOrders();
         if (empty($aOrders)){
             idealodk_logger::log('IDEALO ORDER IMPORT: NOTICE: No Orders to import.');
@@ -53,6 +59,14 @@ class idealodk_order_import
             $this->saveOrder($aOrder);
         }
         idealodk_logger::log('IDEALO ORDER IMPORT: NOTICE: Finished.');
+    }
+
+    protected function getPluginVersion()
+    {
+        $sPluginXml = dirname(__FILE__) . '/../installer/fc_idealodk.xml';
+        $oPluginXml = simplexml_load_file($sPluginXml);
+        $sVersion = $oPluginXml->version;
+        return $sVersion;
     }
 
     /**

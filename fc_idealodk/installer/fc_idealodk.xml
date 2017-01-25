@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf8"?>
 <xtcommerceplugin>
     <title>idealo Direktkauf</title>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
     <code>fc_idealodk</code>
     <url>http://www.idealo.de</url>
     <description>Module to import orders from idealo direktkauf into yout XTC-Shop.</description>

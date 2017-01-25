@@ -36,7 +36,13 @@ class idealodk_orderstatus_export
         $oIdealo->setToken(FC_IDEALODK_APIKEY);
         $blLiveMode = (FC_IDEALODK_MODE == 'live') ? true : false;
         $oIdealo->setIsLiveMode($blLiveMode);
-        
+
+        $oIdealo->setERPShopSystem('XTC');
+        $oIdealo->setERPShopSystemVersion(_SYSTEM_VERSION);
+        $oIdealo->setIntegrationPartner('FATCHIP');
+        $oIdealo->setInterfaceVersion($this->getPluginVersion());
+        idealodk_logger::log('IDEALO ORDER IMPORT: NOTICE: XTC ' . _SYSTEM_VERSION . ' FATCHIP v' . $this->getPluginVersion());
+
         $this->oIdealo = $oIdealo;
     }
     
@@ -84,6 +90,14 @@ class idealodk_orderstatus_export
         $sOutput .= 'CURL-Error: '.$oClient->getCurlError().'<br>';
         $sOutput .= 'CURL-Error-Nr: '.$oClient->getCurlErrno().'<br>';
         return $sOutput;
+    }
+
+    protected function getPluginVersion()
+    {
+        $sPluginXml = dirname(__FILE__) . '/../installer/fc_idealodk.xml';
+        $oPluginXml = simplexml_load_file($sPluginXml);
+        $sVersion = $oPluginXml->version;
+        return $sVersion;
     }
     
     protected function getShippedOrders()
